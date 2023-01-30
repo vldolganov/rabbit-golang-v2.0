@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 	"log"
-	"rabbitv2/helpers"
+	"rabbitv2/pkg/helpers"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
