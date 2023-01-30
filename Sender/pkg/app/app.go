@@ -10,7 +10,16 @@ import (
 )
 
 func Run() {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+
+	companies := [5]string{
+		"IBM",
+		"AAPL",
+		"INTC",
+		"AMD",
+		"TSLA",
+	}
+
+	conn, err := amqp.Dial("amqp://admin:root@localhost:5672/")
 	helpers.FailOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -30,16 +39,20 @@ func Run() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	body := "Hello World!"
-	err = ch.PublishWithContext(ctx,
-		"",
-		q.Name,
-		false,
-		false,
-		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(body),
-		})
-	helpers.FailOnError(err, "Failed to publish a message")
-	log.Printf(" [x] Sent %s\n", body)
+	for range time.Tick(2 * time.Second) {
+		for i := range companies {
+			body := helpers.DataParser(companies[i])
+			err = ch.PublishWithContext(ctx,
+				"",
+				q.Name,
+				false,
+				false,
+				amqp.Publishing{
+					ContentType: "text/plain",
+					Body:        body,
+				})
+			helpers.FailOnError(err, "Failed to publish a message")
+			log.Printf(" [x] Sent %s\n", body)
+		}
+	}
 }
